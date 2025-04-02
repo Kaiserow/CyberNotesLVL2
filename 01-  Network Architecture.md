@@ -40,6 +40,33 @@ Veri gizliliği, verilerin sadece amaçlanan veya yetkilendirilmiş kişilerce e
 
 Veri bütünlülüğü, bir verinin kaynaktan nasıl çıktıysa, hedefe de o şekilde ulaşabilmesini sağlar. Yani verinin transfer sırasında değiştirilmediğinden emin olunmasına olanak tanır.
 
+
 ### Availability
 
 Veri erişilebilirliği, yetkili kullanıcıların veri hizmetlerine zamanında ve güvenilir bir şekilde erişmesini sağlar.
+
+# Hierarchical Network Design
+
+## Physical and Logical Addresses
+
+Bir insanın ismi genelde değişmez ama yaşadığı yerin adresi değişebilir. MAC adresleri de aynı insanların isimlerine benzer bir şekilde fiziksel adres olarak NIC'e atanır ve değişmez. Bunun yanında IP adresleri ise insanların yaşadığı yerlerin adreslerine benzetilebilir. IP adresleri, bir hostun hangi ağda nerede konumlandığı belirlemeye yarayan logical (mantıksal) adreslerdir. Ağdaki iletişim için hem MAC adresleri hem de IP adresleri vazgeçilmezdir ve birlikte kullanılmalıdır. Neden sadece MAC adresi kullanılmadığını merak ediyor olabilirsiniz. Örneğin, insanların sadece isimleri kullanarak birbirine mektup göndermeye çalıştığını düşünün. O isimden dünyada sadece bir tane olsa dahi, adresi olmadan o kişiyi bulmanın ne kadar zor olabileceğini tahmin edebilirsiniz. Bu yüzden ağlar da, spesifik olarak bir yere mesaj gönderilmesi için IP adreslerine ihtiyaç duyarlar. 
+
+Aslında IP adresleri ağları bloklara bölerek, tüm cihazların tek bir ağda olmasını engeller. Bu sayede milyonlarca cihaz arasından birini bulmak yerine çok daha küçük sayılar arasından cihazı bulabiliriz. Bununla beraber, cihazların aynı ağda olması aynı zamanda aynı broadcast domain içerisinde olması demek olduğundan, o ağda broadcast yapılması halinde fazlasıyla gereksiz trafik meydana gelecek ve ağ performansı olumsuz yönde etkilenecektir. Bu iki etkeni göz önünde bulundurduğumuzda, büyük ağları daha küçük ağlara bölmek elzemdir.
+
+Bunu yapmanın bir yolu da "Hierarchical Design Model"ını dikkate almaktır.
+
+## Access, Distribution, and Core Layer
+
+Hiyerarşik bir ağ dizaynı dikkate alındığında yukarıdaki 3 katman göz önünde bulundurulmalıdır.
+
+### Access Layer
+
+Access Layer, end-user cihazlarını ağa dahil etmeye ve hostların diğer hostlara bağlanmasına yarar. Bunları yapan ana cihazlar ise genelde layer 2 switch ve access point'tir (AP). Aynı access layer içerisinde bulunan cihazlar aynı network portiona sahip olacaktır. Mesajın yerelde kalmayıp farklı bir ağa gitmesi gerekirse, bu konumda distribution layer devreye girmelidir.
+
+### Distribution Layer
+
+Bu katman, ağları birbirine bağlayan bir nokta görevi görür ve ağlar arasında trafik akışını kontrol eder. Hostların "routing" yani yönlendirme işlemleri burada yapılır. Distribution layer, access layer ile core layer arasında aracılık yaparak, aradaki trafiğin türünü ve miktarını kontrol eder. Layer 3 switchlerin ve routerlerin burada çalıştığını söyleyebiliriz.
+
+### Core Layer
+
+High-speed bağlantılar ve "redundant" (yedek) bağlantılar sağlayan bir backbone katmanıdır. Büyük miktarda veriyi end networklere taşımakla görevlidir. Çok güçlü ve yüksek hıza sahip switchler ve routerler bu katmana dahil olabilir. Bu katmanın ana hedefi veriyi en hızlı şekilde transfer etmektir.
