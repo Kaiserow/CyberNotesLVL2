@@ -30,8 +30,35 @@ Virtualizationu tam olarak kavrayabilmek için ilk önce server teknolojisinin k
 
 # Virtualization
 
+Sanallaştırmanın avantajları şu şekilde sıralanabilir;
+
 • Sanallaştırma, daha az fiziksel cihaz gerektiren ve bakım maliyetlerini düşüren sunucu consolidation'una (konsolidasyon yani birleşme) olanak tanır.
 
 • Çok daha az enerji tüketir.
 
-•
+• Server consolidationu ayrıca daha az alanın tüketilmesini sağlar.
+
+• İzole ağlarda çalışan bağımsız laboratuvarlar, ağ dağıtımlarının test edilmesi için hızla oluşturulabilir.
+
+• Daha hızlı server provisioning'i sağlar. Provisioning IT endüstrisinde, donanımları, ağları ve diğer kaynakları içeren IT altyapısını kurma ve verileri sistemler ile kullanıcılara sunma sürecine denir.
+
+• Çoğu sunucu sanallaştırma platformu artık gelişmiş "Redundant Fault Tolerance" özellikleri sunuyor. Böylece sunucular daha uzun süreler boyunca aksaklık yaşanmadan açık kalabiliyor.
+
+• Çoğu kurumsal sunucu sanallaştırma platformunda, bir problem gerçekleşmeden önce yedeklemeyi test etmeye ve otomatikleştirmeye yardımcı olabilecek yazılımlar bulunur. Bu yüzden de gelişmiş "recovery" sağlar.
+
+• Sanallaştırma, işletim sistemlerinin ve uygulamaların ömrünü uzatarak kuruluşlara daha yeni çözümlere geçiş için daha fazla zaman sağlayabilir.
+
+## Hypervisors
+
+Hypvervisors, fiziksel donanımın üstüne abstraction layer (soyutlama katmanı) olarak yerleştirilmiş bir firmware, hardware ya da program olabilir. Abstraction layer, makinenin CPU, memory, disk controllers ve NICs gibi donanım kaynaklarına erişilmesine olanak tanıyan sanal makineler oluşturmak için kullanılır. Bu sanal makinelerin her biri, ayrı ve eksiksiz bir işletim sistemi çalıştırır. Sanallaştırma ile 100 adet fiziksel sunucunun, hypervisor kullanan 10 adet fiziksel sunucunun üzerinde sanal makine olarak konsolide edilmesi olağandışı bir durum değildir.
+
+### Type 1 - Bare Metal Hypervisor
+
+Bu hypervisorlar, doğrudan donanıma kurulması nedeniyle "bare metal" olarak adlandırılır. Bu tür hypervisorlar, genelde enterprise serverlarda ve data centerlarda kullanılır. Type 1 hypervisorlarda, hypervisor doğrudan sunucuya veya ağ donanımına kurulur. Daha sonra, hypervisora bir işletim sisteminin örnekleri kurulur. Type 1 hypervisorlar donanım kaynaklarına doğrudan erişime sahiptir; bu nedenle, hosted mimarilerden daha verimlidirler. Type 1 hypervisorlar ölçeklenebilirliği, performansı ve sağlamlığı artırır.
+
+### Type 2 - Hosted Hypervisor
+
+Aşağıdaki şekilde de görüldüğü gibi Type 2 hypervisorlar, donanımın üstüne kurulmuş mevcut bir işletim sisteminin üstüne bir abstarction layer ekleyerek onun da üstüne işletim sistemi kurulabilmesine olanak tanır. Bu hypervisorların en büyük avantajlarından biri, "Management Console Software" gerektirmemeleridir. Hostun kaynaklarının tükenmemesi için kaynaklar doğru şekilde paylaştırılmalıdır.
+
+![Image](images/Type-1-and-type-2-hypervisors.png)
+
