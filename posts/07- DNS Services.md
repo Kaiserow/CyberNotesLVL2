@@ -8,7 +8,7 @@ DNS, serverler arasındaki iletişmide bazı mesaj formatları (message format) 
 
 #### Question -> Name server için soru içerir. (Örneğin, www.google.com domain'inin IP adresi nedir? gibi)
 
-#### Answer -> Resource Records (yani kaynaktan alınan A,AAAA gibi kayıtlar) ile sorular cevaplanır. (www.google.com domain adresinin IP adresi nedir? sorusuna verilen cevabın bir A kaydı olarak 216.58.212.4 içermesi gibi.)
+#### Answer -> Resource Records (yani kaynaktan alınan A, AAAA gibi kayıtlar) ile sorular cevaplanır. (www.google.com domain adresinin IP adresi nedir? sorusuna verilen cevabın bir A kaydı olarak 216.58.212.4 içermesi gibi.)
 
 #### Authority -> Bir domain için kimin yetkili olduğunu söyler. Örneğin, root server'ı, domain ile ilgili TLD serverlarının adreslerini recursive DNS serverına bildirirken Authority ksımına -> .com için TLD Server adresleri belirtilir.
 
