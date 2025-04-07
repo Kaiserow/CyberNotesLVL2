@@ -16,6 +16,16 @@ IPv6 için DHCP (DHCPv6), IPv6 clientları için benzer hizmetler sağlar. Önem
 
 ## DHCP Messages
 
-![image](DHCPMessages.png)
+Şekilde gösterildiği gibi, IPv4, DHCP yapılandırılmış bir cihaz boot edildiğinde veya ağa bağlandığında, bağlanan client ağdaki kullanılabilir DHCP sunucularını tanımlamak için bir DHCP discover (DHCPDISCOVER) mesajı yayınlar. Bir DHCP sunucusu, clienta bir lease teklif eden bir DHCP offer'ı (DHCPOFFER) mesajıyla yanıt verir. Offer mesajı, atanacak IPv4 adresini ve subnet maski, DNS sunucusunun IPv4 adresini ve default gatewayin IPv4 adresini içerir. Bu lease offer, ayrıca lease süresini (period) de içerir.
+
+![image](images/DHCPMessages.png)
+
+Yerel ağda birden fazla DHCP sunucusu varsa client birden fazla DHCPOFFER iletisi alabilir. Bu nedenle, bunlar arasından seçim yapmalı ve clientın kabul ettiği açık sunucuyu ve kiralama teklifini tanımlayan bir DHCP isteği (DHCPREQUEST) iletisi göndermelidir. Bir istemci ayrıca sunucu tarafından daha önce tahsis edilmiş bir adresi istemeyi de seçebilir. 
+
+Talepte bulunulan IP adresleme bilgileri, istemcinin gönderdiği request mesajından sonra bile hala daha diğer hostlar tarafından kullanılabilir durumdadır. IP adresleme bilgilerinin geçerli olabilmesi için, sunucu tarafından onaylanması gerekir. Bu yüzden de sunucu istemciye kiralama sürecinin sonlandırıldığını bildiren bir DHCP acknowledgment (DHCPACK) iletisi döndürür. Teklif artık geçerli değilse, seçilen sunucu bir DHCP negative acknowledgment (DHCPNAK) iletisiyle yanıt verir. Bir DHCPNAK iletisi döndürülürse, seçim süreci yeni bir DHCPDISCOVER iletisinin iletilmesiyle yeniden başlamalıdır. İstemci lease aldıktan sonra, lease period sona ermeden önce başka bir DHCPREQUEST iletisiyle yenilenmesi gerekir.
+
+#### NOT: Router, local ağ için bir DHCP server olarak davranabilirken aynı zamanda da bağlı olduğu WAN'da da bir DHCP client olarak davranır. Böylece, bağlı olduğu ISP'den gerekli adresleme bilgilerini (Public IP gibi) alır.
+
+DHCPv6, DHCPv4'e benzer bir mesaj kümesine sahiptir. DHCPv6 mesajları SOLICIT, ADVERTISE, INFORMATION REQUEST ve REPLY'dır.
 
 
