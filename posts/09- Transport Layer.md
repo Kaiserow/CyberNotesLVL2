@@ -157,6 +157,158 @@ UDP; DNS, DHCP, SNMP, VoIP gibi uygulamalarda ve flow control, error detection, 
 
 DNS ve SNMP varsayılan olarak UDP kullansa da, her ikisi de TCP kullanabilir. DNS requesti veya DNS replyı 512 bayttan fazlaysa, örneğin bir DNS yanıtı birçok domain name resolution içeriyorsa, DNS TCP kullanır. Benzer şekilde, bazı durumlarda ağ yöneticisi SNMP'yi TCP kullanacak şekilde yapılandırmak isteyebilir.
 
+# TCP Connection Establishment
+
+İnsanların birbiriyle el sıkışması (handshake) nasıl bir anlaşma göstergesiyse, ağlarda da benzer şekildedir. TCP, client ile server arasında bir bağlantı kurmak için "three-way handshake" işlemini gerçekleştirmelidir. Bu işlemi şöyle açıklayalım;
+
+#### Step 1 Synchronization (SYN)
+
+Client, server'a, "client-to-server" oturumu talep eder.
+
+#### Step 2 Acknowledgement and Synchronization (ACK-SYN)
+
+Server, client'ın "client-to-server" oturumunu kabul eder ve kendisi de client'a, "server-to-client" oturumu talep eder.
+
+#### Step 3 Acknowledgement (ACK)
+
+Son olarak da client, server'ın, "server-to-client" oturumunu kabul eder.
+
+Three-way handshake, server'ın iletişimde kullanılabilir olduğunu doğrulamayı sağlar.
+
+# Session Termination
+
+Bir bağlantı sonlandırılırken, hem "client-to-server" hem de, "server-to-client" oturumunun kapanması gerekir. Bu yüzden de, client-to-server oturumu için client, server'a header flag'inde "FIN" yazılı bir segment yollar. Server da bunu kabul ettiğini belirten "ACK" flag'li bir segment gönderir. Daha sonrasında, server-to-client oturumunu kapatmak için de aynı işlem gerçekleşir ama bu sefer "FIN" atan server'dır ve "ACK" atan da client'tır. Böylece oturum tamamen kapanmış olur.
+
+TCP, full-duplex (çift yönlü) bir iletişim protokolüdür, yani hem istemci hem de sunucu aynı anda veri gönderebilir ve alabilir. Bu, iki tarafın birbirini beklemeden karşılıklı veri alışverişi yapabilmesini sağlar. Bunu daha iyi anlayabilmek için, iletişim türlerini netleştirmek gerekir: Simplex iletişimde veri sadece tek yönde akar; örneğin bir klavyeden bilgisayara sinyal gider ama geri dönüş olmaz. Half-duplex iletişimde veri iki yönde iletilebilir fakat aynı anda değil, taraflar sırayla konuşur; telsiz (walkie-talkie) mantığı da aynen bu şekilde işler. Oysa full-duplex iletişimde veri her iki yönde aynı anda gidebilir; örneğin telefon görüşmeleri ya da TCP bağlantıları gibi. Bu sayede TCP, veri alışverişini çift yönlü ve gerçek zamanlı şekilde yürütebilir, bu da onu güvenilir ve esnek kılar.
+
+#### NOT: TCP'ninde aynı bir telefon görüşmesinde olduğu gibi bağlantı kurduğunu ve bu bağlantı esnasında veri alışverişi yaptığını göz önünde bulundurduğumuzda, full-duplex kavramını daha iyi oturtabiliriz.
+
+Hostlar, TCP header bilgileri sayesinde bağlantının durumunu (state) takip edebilir. Yukarıda da bahsettiğimiz üzere, TCP header'ında bazı control bitleri (control flags) bulunur. Bunlar; SYN, ACK, FIN, RST, PSH, URG şeklinde ifade edilir. Bunlar TCP bağlantısının hangi durumda olduğunu belirtmek için kullanılan bitlerdir. Gelin bunları daha yakından inceleyelim;
+
+#### URG (Urgent) -> Verinin içinde “acil” bir kısım olduğunu belirtir (urgent pointer alanı aktif olur).
+
+#### ACK (Acknowledgment) -> Alınan verileri onaylamak için kullanılır (acknowledgment number alanı geçerli olur)
+
+#### PSH (Push) -> Verinin hemen uygulamaya iletilmesini ister (yani buffer'da beklemesin der.)
+
+#### SYN (Synchronization)-> Bağlantı başlatmak için kullanılır.
+
+#### FIN (Finish) -> Bağlantıyı kapatmak için gönderilir (connection termination)
+
+#### RST (Reset) -> Bağlantıyı hemen sonlandırmak (zorla kapatmak) için kullanılır (genelde hatalarda).
+
+# TCP Sequence Numbers and Acknowledgements
+
+TCP segmentlerinin zaman zaman hedefe ulaşmaması durumu yaşanabilir. Bazı durumlarda ise TCP segmentleri yanlış sırayla ulaşabilir. Alıcının orijinal mesajı doğru bir şekilde anlayabilmesi için, tüm verilerin eksiksiz alınması ve bu segmentlerdeki verilerin orijinal sırasına göre yeniden birleştirilmesi gerekir.
+Bu amacı gerçekleştirmek için, her paketin başlığına bir sequence number (sıra numarası) atanır.
+Sequence number, TCP segmentindeki ilk veri baytını temsil eder.
+
+Oturum kurulurken, bir initial sequence number (ISN) yani başlangıç sıra numarası belirlenir.
+Bu ISN, alıcı uygulamaya iletilecek baytların hangi sayıyla başlayacağını ifade eder.
+Oturum sırasında veri iletildikçe, sequence number, gönderilen veri baytı sayısı kadar artırılır.
+Bu veri baytı takibi, her segmentin benzersiz bir şekilde tanımlanmasını ve onaylanabilmesini (ACK) sağlar.
+Bu sayede eksik segmentler tespit edilebilir. 
+ISN değeri sıfırdan ya da birden başlamaz; bunun yerine etkin olarak rastgele bir sayı olarak belirlenir.
+Bu, bazı kötü niyetli saldırıların önlenmesi amacıyla yapılır. Ancak örneklerde basitlik sağlamak adına ISN olarak 1 kullanılacaktır.
+
+ACK sayısı da alıcının hangi baytları aldığını ve bundan sonra hangi baytları beklediğini gösterir. Bu da "expectational acknowledgement" olarak adlandırılır.
+
+![image](images/tcp-seq-ack-flow-e1524681839913.webp)
+
+# TCP Reliability - Data Loss and Retransmission
+
+
+TCP'nin daha sonrasında yapılan bir takım geliştirmelerden önce, sadece bir sonraki beklenen baytı onaylayabilme yeteneği vardı.
+Örneğin, basitlik adına segment numaraları kullanırsak:
+Host A, Host B’ye 1’den 10’a kadar olan segmentleri gönderiyor.
+Eğer bu segmentlerden sadece 3 ve 4 ulaşmazsa,
+Host B alıcı olarak şöyle cevap verir:
+
+“Benim beklediğim bir sonraki segment 3’tür.”
+
+Bu durumda, Host A diğer segmentlerin ulaşıp ulaşmadığını bilmez.
+Dolayısıyla güvenli oynamak için, sadece 3 ve 4’ü değil, 3’ten 10’a kadar tüm segmentleri tekrar gönderir.
+
+Eğer bu yeniden gönderilen segmentlerin hepsi başarıyla ulaştıysa,
+önceden alınmış olan segmentler (5–10) artık duplicate (“fazlalık/çift kopya”) olur.
+Bu da gereksiz gecikmelere, ağda tıkanmaya ve verimsizliğe neden olabilir.
+
+Günümüzdeki host (bilgisayar) işletim sistemleri, genellikle SACK (Selective Acknowledgment – Seçmeli Onaylama) adı verilen isteğe bağlı bir TCP özelliği kullanır.
+Bu özellik, üç yönlü el sıkışma (3-way handshake) sırasında iki taraf arasında anlaşmaya varılarak aktif edilir.
+
+Eğer her iki taraf da SACK desteğine sahipse, alıcı taraf, hangi segmentlerin (byte'ların) alındığını açıkça belirtebilir – hatta bu segmentler ardışık olmasa bile.
+Bu sayede, gönderici sadece gerçekten eksik olan verileri yeniden gönderir.
+
+Örneğin, basitlik adına yine segment numaraları kullanırsak:
+Host A, 1'den 10'a kadar olan segmentleri Host B'ye gönderir.
+Eğer sadece 3 ve 4. segmentler kaybolmuşsa, Host B şunu yapabilir:
+
+"ACK 3" ile 1 ve 2'nin alındığını bildirir
+
+Ayrıca "SACK 5–10" ile 5’ten 10’a kadar olan segmentlerin de alındığını seçmeli olarak bildirir.
+
+Bu durumda, Host A sadece 3 ve 4. segmentleri yeniden gönderir.
+
+5-10 arasındaki segmentlerin de alındığı söylendiği için (5 ve 10 dahil), 3-4 segmentleri gönderildikten sonra, gönderici taraf, 11. segmentten sonrasını da göndermeye başlar.
+
+![image](images/SACK.png)
+
+Bir hostun diğer bir hosta segmentler gönderdiği bir senaryoda, 1. segment gönderilirken, kaynak tarafında bu segment için bir timer tutulur. Hedefin bu timer dolmadan bir ACK göndermesi gerekir. 1. segmentin hedef hosta başarılı bir şekilde ulaştığını ve hedef hostun da bunu doğrulamak için kaynağa "ACK" gönderdiğini varsayalım. Kaynak bu durumda sıradaki segment için ayrı bir timer oluşturup onu hedefe gönderecektir. Fakat bu sefer belirlenen süre içerisinde hedef bir ACK göndermez. Bundan dolayı da kaynak host segmenti hedefe bir daha gönderir. Bu daha daha önceden bahsettiğimiz gibi TCP'yi "reliable" yapan fonksiyonlarından biridir.
+
+# TCP Flow Control - Window Size and Acknowledgments
+
+Ayrıca TCP'nin flow control sağladığından da daha önce bahsetmiştik. Bunu header'ındaki "window size" sayesinde yapar. 
+
+![image](images/windowsize.png)
+
+Window size, bir "ACK" alınmadan önce toplamda ne kadar bayt gönderilebileceğini belirlemek için kullanılır. Yani aslında,  bir TCP oturumunun hedef cihazının aynı anda kabul edebileceği ve işleyebileceği bayt sayısıdır.
+
+Yukarıdaki örnekte PC B, initial window size'ın 10,000 bayt olduğunu PC A'ya bildirir. Yani 1 bayttan başlayarak, PC A'nın bir onay almadan gönderebileceği son bayt 10.000 bayttır. PC A'nın gönderebileceği window size "send window size", PC B'nin alabileceği window size "receive window size" olarak adlandırılabilir. Window size, her segment için ayrı ayrı gönderilebilir ve bu sayede de alıcı, kendi buffer durumuna göre window size değerini tekrardan belirleyebilir.
+
+Initial window size, three-way handshake esnasında kararlaştırılır. Window size, bağlantı kurulduktan sonra da dinamik olarak güncellenebilir. Kaynak, hedefin belirlemiş olduğu window size'a göre segmentlerini göndermeli ve bu sınırı aşmamalıdır. Eğer kaynak cihaz, hedef tarafından bir ACK alırsa, o zaman yine hedefin belirlediği window size'a göre segment göndermeye devam edebilir. Yukarıdaki şekilde de görüldüğü üzere, hedef cihaz genelde, kaynak cihazın window size sınırına ulaşmasını beklemeden ACK segmentlerini gönderir. Bu davranışa “early ACK” veya “piggybacking” denebilir. Bu sayede kaynak cihaz o zamana kadar giden segmentlerin başarılı bir şekilde ulaştığını doğrulayabilir ve daha fazla bayt gönderebilir. Ya da bunun tam tersine, hedefin buffer'ının dolduğu bir senaryoda da window size'ın küçüldüğünü de belirtebilir. Bu sayede hedefin buffer durumuna göre, doğru ve dinamik bir şekilde window size belirlenebilir. İşte window size'ın hedefin buffer'ına göre dinamik olarak ayarlanması da "sliding windows" olarak adlandırılır.
+
+Günümüzde cihazlar sliding windows özelliğini kullanır. Alıcı genellikle aldığı her iki segmentten sonra bir onay (ACK) gönderir. Onaylanmadan önce alınan segment sayısı değişebilir. Sliding windows'ların avantajı, alıcı önceki segmentleri onayladığı sürece göndericinin segmentleri sürekli olarak iletmesine izin vermesidir.
+
+# TCP Flow Control - Maximum Segment Size (MSS)
+
+Yine yukarıdaki şekildiği görülebileceği üzere, Maximum Segment Size (MSS), hedef cihazın alabileceği maksimum segment boyutudur. Bu cihazın, tek seferde toplamda kaç baytlık bir segment alıp işleyebileceğini belirler. Bu yüzden window size ile karıştırılmamalıdır. MSS, TCP header'ındaki options alanının bir parçasıdır. MSS boyutuna, TCP header boyutu dahil değildir. Initial window size'ın belirlenmesine benzer şekilde MSS de three-way handshake sırasında belirlenir.
+
+IPv4 kullanıldığında yaygın bir MSS 1.460 bayttır. Bir host, MSS alanının değerini, IP ve TCP başlıklarını Ethernet Maximum Transmission Unit (MTU)'dan çıkararak belirler. Bir Ethernet arayüzünde, varsayılan MTU 1500 bayttır. 20 baytlık IPv4 başlığı ve 20 baytlık TCP başlığı çıkarılarak, varsayılan MSS boyutu şekilde gösterildiği gibi 1460 bayt olacaktır.
+
+# TCP Flow Control - Congestion Avoidance
+
+Ağda tıkanıklık (congestion) meydana geldiğinde, bu durum overloaded router'lar tarafından veri paketlerinin atılmasıyla (discard) sonuçlanır.
+TCP segmentlerini içeren paketler hedefe ulaşamazsa, bu segmentler onaylanmadan (ACK alınmadan) kalır.
+
+Gönderilen ancak zamanında onaylanmayan TCP segmentlerinin oranı belirlenerek, kaynak cihaz ağda belirli bir düzeyde tıkanıklık olduğunu varsayabilir.
+
+Tıkanıklık yaşandığında, kaynak cihaz kaybolan TCP segmentlerini yeniden iletir.
+Ancak, bu yeniden iletim düzgün şekilde kontrol edilmezse,
+
+→ Ağa ek yük bindirerek tıkanıklığı daha da kötüleştirebilir.
+Çünkü hem yeni TCP segmentleri ağa girer,
+hem de önceki kayıpların geri bildirim (feedback) etkisiyle oluşan yeniden iletimler ağı daha fazla yükler.
+
+TCP, tıkanıklığı önlemek ve kontrol altına almak için çeşitli tıkanıklık yönetim mekanizmaları, zamanlayıcılar (timers) ve algoritmalar kullanır.
+
+Kaynak cihaz, TCP segmentlerinin ya hiç onaylanmadığını
+ya da gecikmeli olarak onaylandığını fark ederse,
+
+→ O zaman her bir onay (ACK) alınmadan önce gönderdiği bayt miktarını azaltabilir. (ACK alındığında ise window size tekrar belirleneceğinden dolayı ona göre hızını tekrar belirleyebilir.)
+
+#### NOT: ACK Numbers bir sonraki beklenen baytı temsil eder, segmenti değil. Anlatım basitleştirilmek için segment ifadesi kullanılır.
+
+Şuna dikkat edilmelidir:
+Gönderilen bayt miktarını azaltan taraf kaynak cihazdır.
+Bu değişiklik, hedef cihazın belirlediği window size ile ilgili değildir.
+
+
+
+
+
+
+
+
 
 
 
